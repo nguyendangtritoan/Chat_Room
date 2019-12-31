@@ -1,12 +1,15 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ChatClient extends JFrame implements Runnable{
+
+public class ChatClient extends JFrame implements Runnable {
 
     Socket socket;
     JTextArea ta;
@@ -25,8 +28,8 @@ public class ChatClient extends JFrame implements Runnable{
         LoginName = login;
 
 
-
         ta = new JTextArea(18, 50);
+        ta.setEditable(false);
         tf = new JTextField(50);
 
         send = new JButton("Send");
@@ -35,12 +38,38 @@ public class ChatClient extends JFrame implements Runnable{
         send.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    dout.writeUTF(LoginName+" "+"DATA "+ tf.getText());
-                    tf.setText("");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                if (!tf.getText().isEmpty())
+                    try {
+                        dout.writeUTF(LoginName + " " + "DATA " + tf.getText());
+                        tf.setText("");
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+            }
+        });
+
+        tf.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!tf.getText().isEmpty())
+                        try {
+                            dout.writeUTF(LoginName + " " + "DATA " + tf.getText());
+                            tf.setText("");
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                 }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
             }
         });
 
@@ -48,7 +77,7 @@ public class ChatClient extends JFrame implements Runnable{
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    dout.writeUTF(LoginName+" "+"LOGOUT ");
+                    dout.writeUTF(LoginName + " " + "LOGOUT ");
                     System.exit(1);
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -62,7 +91,7 @@ public class ChatClient extends JFrame implements Runnable{
         dout = new DataOutputStream(socket.getOutputStream());
 
         dout.writeUTF(LoginName);
-        dout.writeUTF(LoginName+" "+"LOGIN");
+        dout.writeUTF(LoginName + " " + "LOGIN");
 
         thread = new Thread(this);
         thread.start();
@@ -89,7 +118,7 @@ public class ChatClient extends JFrame implements Runnable{
     public void run() {
         while (true) {
             try {
-                ta.append("\n "+din.readUTF());
+                ta.append("\n " + din.readUTF());
             } catch (IOException e) {
                 e.printStackTrace();
             }
